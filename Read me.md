@@ -13,6 +13,15 @@ story) and then press one button to watch them interact. The results are driven
 by authored traits, backstory tags, and relationships, and are explained clearly
 to the player.
 
+## Quick Start (Prototype)
+1. Open `index.html` in a modern browser.
+2. Add at least two characters in the creator panel.
+3. Press **Interact** to trigger a scene tick.
+
+Notes:
+- The prototype uses a Three.js CDN for simple 3D visualization.
+- Interactions are rule-based and logged in the Summary panel.
+
 ## 2. Design Goals
 1. **Agency through authoring**: Player choices in the creator strongly impact
    interactions.
