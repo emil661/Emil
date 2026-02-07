@@ -64,13 +64,25 @@ function getRelationship(a, b) {
 function getSharedTags(a, b) {
   const shared = [];
   if (a.backstory.origin === b.backstory.origin) {
-    shared.push(`origin:${a.backstory.origin}`);
+    shared.push({
+      type: "origin",
+      value: a.backstory.origin,
+      label: "they come from the same place",
+    });
   }
   if (a.backstory.career === b.backstory.career) {
-    shared.push(`career:${a.backstory.career}`);
+    shared.push({
+      type: "career",
+      value: a.backstory.career,
+      label: "they do the same job",
+    });
   }
   if (a.backstory.goal === b.backstory.goal) {
-    shared.push(`goal:${a.backstory.goal}`);
+    shared.push({
+      type: "goal",
+      value: a.backstory.goal,
+      label: "they want the same thing",
+    });
   }
   return shared;
 }
@@ -208,9 +220,15 @@ function applyRelationshipDelta(rel, delta) {
 
 function formatDelta(delta) {
   const parts = [];
-  if (delta.affinity) parts.push(`Affinity ${delta.affinity > 0 ? "+" : ""}${delta.affinity}`);
-  if (delta.trust) parts.push(`Trust ${delta.trust > 0 ? "+" : ""}${delta.trust}`);
-  if (delta.respect) parts.push(`Respect ${delta.respect > 0 ? "+" : ""}${delta.respect}`);
+  if (delta.affinity) {
+    parts.push(`Friendship ${delta.affinity > 0 ? "+" : ""}${delta.affinity}`);
+  }
+  if (delta.trust) {
+    parts.push(`Trust ${delta.trust > 0 ? "+" : ""}${delta.trust}`);
+  }
+  if (delta.respect) {
+    parts.push(`Respect ${delta.respect > 0 ? "+" : ""}${delta.respect}`);
+  }
   if (parts.length === 0) return "";
   return `(${parts.join(", ")})`;
 }
@@ -219,15 +237,21 @@ function addSummary(interactions) {
   elements.summaryList.innerHTML = "";
   if (interactions.length === 0) {
     const li = document.createElement("li");
-    li.textContent = "No interactions triggered. Try adjusting traits or tags.";
+    li.textContent = "No one interacted. Try changing traits or tags.";
     elements.summaryList.appendChild(li);
     return;
   }
   interactions.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = `${item.a.name} ${item.verb} ${item.b.name}. ${formatDelta(
-      item.delta
-    )} Because ${item.reason}.`;
+    const deltaText = formatDelta(item.delta);
+    const parts = [`${item.a.name} ${item.verb} ${item.b.name}.`];
+    if (deltaText) {
+      parts.push(deltaText);
+    }
+    if (item.reason) {
+      parts.push(`Because ${item.reason}.`);
+    }
+    li.textContent = parts.join(" ");
     elements.summaryList.appendChild(li);
   });
 }
@@ -247,9 +271,9 @@ function scoreInteraction(type, a, b, rel, sharedTags, similarity, contrast) {
 
   if (type === "friendly") {
     score = 12 + similarity * 10 + sharedScore + affinity + kindness;
-    factors.push({ label: "their personalities matched", value: similarity * 10 });
+    factors.push({ label: "they get along well", value: similarity * 10 });
     if (sharedTags.length) {
-      factors.push({ label: `they share ${sharedTags[0]}`, value: sharedScore });
+      factors.push({ label: sharedTags[0].label, value: sharedScore });
     }
   }
 
@@ -257,25 +281,25 @@ function scoreInteraction(type, a, b, rel, sharedTags, similarity, contrast) {
     score = 10 + kindness + humor + sharedScore + trust;
     factors.push({ label: `${a.name} is kind`, value: a.traits.kindness / 10 });
     if (sharedTags.length) {
-      factors.push({ label: `they share ${sharedTags[0]}`, value: sharedScore });
+      factors.push({ label: sharedTags[0].label, value: sharedScore });
     }
   }
 
   if (type === "help") {
     score = 9 + trust + kindness + patience;
-    factors.push({ label: `${b.name} seemed trustworthy`, value: trust });
+    factors.push({ label: "they trust each other", value: trust });
     factors.push({ label: `${a.name} is patient`, value: a.traits.patience / 12 });
   }
 
   if (type === "debate") {
     score = 8 + confidence + contrast * 12 - patience + respect;
     factors.push({ label: "they are both confident", value: confidence });
-    factors.push({ label: "their views differ", value: contrast * 12 });
+    factors.push({ label: "they think differently", value: contrast * 12 });
   }
 
   if (type === "avoid") {
     score = 6 + (100 - rel.affinity) / 15 + (100 - rel.trust) / 18 - sharedScore;
-    factors.push({ label: "low affinity between them", value: (100 - rel.affinity) / 15 });
+    factors.push({ label: "they do not know each other well", value: (100 - rel.affinity) / 15 });
   }
 
   const repetitionPenalty =
@@ -286,7 +310,7 @@ function scoreInteraction(type, a, b, rel, sharedTags, similarity, contrast) {
   const best = factors
     .filter((factor) => factor.value > 0)
     .sort((a1, a2) => a2.value - a1.value)[0];
-  const reason = best ? best.label.replace(":", " ") : "their traits aligned";
+  const reason = best ? best.label.replace(":", " ") : "they felt comfortable";
 
   return { score, reason };
 }
@@ -336,15 +360,15 @@ function selectInteractions() {
 function interactionVerb(type) {
   switch (type) {
     case "compliment":
-      return "complimented";
+      return "said something nice to";
     case "help":
-      return "asked for help from";
+      return "asked help from";
     case "debate":
-      return "debated with";
+      return "had a small disagreement with";
     case "avoid":
-      return "avoided";
+      return "felt shy around";
     default:
-      return "chatted with";
+      return "said hi to";
   }
 }
 
@@ -355,9 +379,9 @@ function interactionDelta(type) {
     case "help":
       return { affinity: 6, trust: 7 };
     case "debate":
-      return { affinity: -4, respect: 3 };
+      return { affinity: -2, respect: 2 };
     case "avoid":
-      return { affinity: -6, trust: -3 };
+      return { affinity: -3, trust: -2 };
     default:
       return { affinity: 4, trust: 2 };
   }
