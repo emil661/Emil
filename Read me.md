@@ -16,7 +16,7 @@ to the player.
 ## Quick Start (Prototype)
 1. Open `index.html` in a modern browser.
 2. Add at least two characters in the creator panel.
-3. Press **Interact** to trigger a scene tick.
+3. Press **Start Game**, then **Play Round** to trigger interactions.
 
 Notes:
 - The prototype uses a Three.js CDN for simple 3D visualization.

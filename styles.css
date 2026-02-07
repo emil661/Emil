@@ -125,6 +125,32 @@ button.primary:hover {
   background: #5a8bff;
 }
 
+button.ghost {
+  border: 1px solid #2a3142;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  color: #cdd6f4;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.ghost:hover {
+  border-color: #3b4560;
+  color: #ffffff;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .cards {
   display: grid;
   gap: 10px;
@@ -183,6 +209,70 @@ button.primary:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.game {
+  background: #0f1117;
+  border: 1px solid #2a3142;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #23304a;
+  color: #cdd6f4;
+  font-size: 12px;
+}
+
+.game-description {
+  margin: 0;
+  color: #a8b0c4;
+  font-size: 13px;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.game-stats .label {
+  display: block;
+  color: #b5bfd6;
+  font-size: 12px;
+}
+
+.progress {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #1b2230;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #57d785, #4f80ff);
+  transition: width 0.3s ease;
+}
+
+.game-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .canvas-wrap {

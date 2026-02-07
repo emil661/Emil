@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Character Interaction Prototype</title>
+    <title>Character Interaction Playground</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="top-bar">
       <div>
-        <h1>Character Interaction Prototype</h1>
-        <p>Customize characters, then press Interact to watch them respond.</p>
+        <h1>Character Interaction Playground</h1>
+        <p>Build a cast, start the game, and play rounds to grow friendship.</p>
       </div>
       <div class="status" id="status">Add at least 2 characters.</div>
     </header>
@@ -161,7 +161,10 @@
           </div>
         </div>
 
-        <button class="primary" id="addCharacter">Add Character</button>
+        <div class="button-row">
+          <button class="primary" id="addCharacter">Add Character</button>
+          <button class="ghost" id="randomCharacter">Random Character</button>
+        </div>
 
         <div class="list">
           <h3>Cast</h3>
@@ -172,7 +175,34 @@
       <section class="panel scene">
         <div class="scene-header">
           <h2>Scene</h2>
-          <button class="primary" id="interactButton">Interact</button>
+          <button class="primary" id="interactButton">Play Round</button>
+        </div>
+
+        <div class="game">
+          <div class="game-title">
+            <h3>Game Goal</h3>
+            <span class="pill" id="goalValue">Reach 45 friendship</span>
+          </div>
+          <p class="game-description">
+            You have <strong>5 rounds</strong> to grow friendship points.
+          </p>
+          <div class="game-stats">
+            <div>
+              <span class="label">Round</span>
+              <span id="roundValue">0 / 5</span>
+            </div>
+            <div>
+              <span class="label">Friendship</span>
+              <span id="scoreValue">0</span>
+            </div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="scoreBar"></div>
+          </div>
+          <div class="game-buttons">
+            <button class="primary" id="startGame">Start Game</button>
+            <button class="ghost" id="resetGame">Reset</button>
+          </div>
         </div>
 
         <div class="canvas-wrap">

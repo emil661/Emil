@@ -6,6 +6,15 @@ const state = {
   tick: 0,
 };
 
+const game = {
+  active: false,
+  round: 0,
+  maxRounds: 5,
+  goal: 45,
+  score: 0,
+  finished: false,
+};
+
 const elements = {
   status: document.getElementById("status"),
   name: document.getElementById("name"),
@@ -15,10 +24,17 @@ const elements = {
   career: document.getElementById("career"),
   goal: document.getElementById("goal"),
   addCharacter: document.getElementById("addCharacter"),
+  randomCharacter: document.getElementById("randomCharacter"),
+  startGame: document.getElementById("startGame"),
+  resetGame: document.getElementById("resetGame"),
   interactButton: document.getElementById("interactButton"),
   characterList: document.getElementById("characterList"),
   summaryList: document.getElementById("summaryList"),
   canvas: document.getElementById("sceneCanvas"),
+  roundValue: document.getElementById("roundValue"),
+  scoreValue: document.getElementById("scoreValue"),
+  goalValue: document.getElementById("goalValue"),
+  scoreBar: document.getElementById("scoreBar"),
 };
 
 const TRAITS = [
@@ -37,10 +53,33 @@ const BODY_SCALES = {
   athletic: 1.05,
 };
 
+const RANDOM_NAMES = [
+  "Ava",
+  "Jamal",
+  "Mina",
+  "Leo",
+  "Sofi",
+  "Kai",
+  "Ria",
+  "Noah",
+  "Luca",
+  "Zara",
+];
+
+const RANDOM_COLORS = ["#4f80ff", "#ff7a59", "#57d785", "#f7d06f", "#c98bff"];
+
 let idCounter = 1;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function randomChoice(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function pairKey(a, b) {
@@ -122,12 +161,54 @@ function buildTraitsFromInputs() {
   return traits;
 }
 
+function randomizeInputs() {
+  elements.name.value = randomChoice(RANDOM_NAMES);
+  elements.color.value = randomChoice(RANDOM_COLORS);
+  elements.bodyType.value = randomChoice(Object.keys(BODY_SCALES));
+  elements.origin.value = randomChoice(Array.from(elements.origin.options)).value;
+  elements.career.value = randomChoice(Array.from(elements.career.options)).value;
+  elements.goal.value = randomChoice(Array.from(elements.goal.options)).value;
+
+  document.querySelectorAll("input[type='range'][data-trait]").forEach((input) => {
+    input.value = randomBetween(20, 90);
+  });
+  updateTraitLabels();
+}
+
 function updateStatus() {
   if (state.characters.length < 2) {
     elements.status.textContent = "Add at least 2 characters.";
-  } else {
-    elements.status.textContent = "Ready. Press Interact to watch them respond.";
+    return;
   }
+  if (game.finished) {
+    elements.status.textContent = "Game over! Press Reset to play again.";
+    return;
+  }
+  if (!game.active) {
+    elements.status.textContent = "Ready. Press Start Game to begin.";
+    return;
+  }
+  elements.status.textContent = `Round ${game.round + 1} of ${game.maxRounds}. Press Play Round.`;
+}
+
+function updateGameUI() {
+  const currentRound = game.active
+    ? Math.min(game.round + 1, game.maxRounds)
+    : game.finished
+      ? game.maxRounds
+      : 0;
+  elements.roundValue.textContent = `${currentRound} / ${game.maxRounds}`;
+  elements.scoreValue.textContent = `${game.score}`;
+  elements.goalValue.textContent = `Reach ${game.goal} friendship`;
+  const progress = clamp((game.score / game.goal) * 100, 0, 100);
+  elements.scoreBar.style.width = `${progress}%`;
+
+  elements.startGame.disabled = game.active || game.finished;
+  elements.resetGame.disabled = !game.active && !game.finished && game.score === 0 && game.round === 0;
+  elements.interactButton.disabled =
+    !game.active || game.finished || game.round >= game.maxRounds || state.characters.length < 2;
+
+  updateStatus();
 }
 
 function renderCharacterList() {
@@ -173,7 +254,7 @@ function renderCharacterList() {
 
     elements.characterList.appendChild(card);
   });
-  updateStatus();
+  updateGameUI();
 }
 
 function removeCharacter(id) {
@@ -218,6 +299,16 @@ function applyRelationshipDelta(rel, delta) {
   rel.respect = clamp(rel.respect + (delta.respect || 0), 0, 100);
 }
 
+function pointsFromDelta(delta) {
+  return (delta.affinity || 0) + (delta.trust || 0) + (delta.respect || 0);
+}
+
+function addGameMessage(text) {
+  const li = document.createElement("li");
+  li.textContent = text;
+  elements.summaryList.prepend(li);
+}
+
 function formatDelta(delta) {
   const parts = [];
   if (delta.affinity) {
@@ -254,6 +345,45 @@ function addSummary(interactions) {
     li.textContent = parts.join(" ");
     elements.summaryList.appendChild(li);
   });
+}
+
+function resetRelationships() {
+  state.relationships.clear();
+  state.characters.forEach((char) => {
+    char.memory = [];
+  });
+}
+
+function startGame() {
+  if (state.characters.length < 2) {
+    elements.status.textContent = "Add at least 2 characters to start.";
+    return;
+  }
+  resetRelationships();
+  game.active = true;
+  game.finished = false;
+  game.round = 0;
+  game.score = 0;
+  elements.summaryList.innerHTML = "";
+  addGameMessage("Game started! Grow friendship to reach the goal.");
+  updateGameUI();
+}
+
+function resetGame() {
+  game.active = false;
+  game.finished = false;
+  game.round = 0;
+  game.score = 0;
+  elements.summaryList.innerHTML = "";
+  resetRelationships();
+  updateGameUI();
+}
+
+function finishGame(message) {
+  game.active = false;
+  game.finished = true;
+  addGameMessage(message);
+  updateGameUI();
 }
 
 function scoreInteraction(type, a, b, rel, sharedTags, similarity, contrast) {
@@ -400,9 +530,23 @@ function focusPair(a, b, durationMs) {
 }
 
 function runInteractionTick() {
+  if (game.finished) {
+    elements.status.textContent = "Game over! Press Reset to play again.";
+    return;
+  }
+  if (!game.active) {
+    elements.status.textContent = "Press Start Game first.";
+    return;
+  }
+  if (game.round >= game.maxRounds) {
+    finishGame("Game over! Press Reset to play again.");
+    return;
+  }
+
   state.tick += 1;
   const chosen = selectInteractions();
   const summaries = [];
+  let roundPoints = 0;
 
   chosen.forEach((candidate, index) => {
     const rel = getRelationship(candidate.a, candidate.b);
@@ -410,6 +554,7 @@ function runInteractionTick() {
     applyRelationshipDelta(rel, delta);
     rel.lastInteractionType = candidate.type;
     rel.lastInteractionTick = state.tick;
+    roundPoints += pointsFromDelta(delta);
 
     summaries.push({
       a: candidate.a,
@@ -423,6 +568,20 @@ function runInteractionTick() {
   });
 
   addSummary(summaries);
+  game.round += 1;
+  game.score = clamp(game.score + roundPoints, 0, 100);
+  const pointsLabel =
+    roundPoints >= 0
+      ? `earned ${roundPoints} friendship`
+      : `lost ${Math.abs(roundPoints)} friendship`;
+  addGameMessage(`Round ${game.round} ${pointsLabel}.`);
+  updateGameUI();
+
+  if (game.score >= game.goal) {
+    finishGame("Goal reached! Everyone feels more connected.");
+  } else if (game.round >= game.maxRounds) {
+    finishGame(`Final score: ${game.score}. Press Reset to try again.`);
+  }
 }
 
 function updateTraitLabels() {
@@ -439,6 +598,15 @@ document.querySelectorAll("input[type='range'][data-trait]").forEach((input) => 
 });
 updateTraitLabels();
 
+elements.randomCharacter.addEventListener("click", () => {
+  randomizeInputs();
+  const character = buildCharacter();
+  addCharacterToScene(character);
+  state.characters.push(character);
+  layoutCharacters();
+  renderCharacterList();
+});
+
 elements.addCharacter.addEventListener("click", () => {
   const character = buildCharacter();
   addCharacterToScene(character);
@@ -448,12 +616,11 @@ elements.addCharacter.addEventListener("click", () => {
 });
 
 elements.interactButton.addEventListener("click", () => {
-  if (state.characters.length < 2) {
-    elements.status.textContent = "Add at least 2 characters to interact.";
-    return;
-  }
   runInteractionTick();
 });
+
+elements.startGame.addEventListener("click", startGame);
+elements.resetGame.addEventListener("click", resetGame);
 
 // --- Three.js Scene Setup ---
 const scene = new THREE.Scene();
@@ -527,5 +694,5 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-updateStatus();
+updateGameUI();
 animate();
