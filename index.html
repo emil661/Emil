@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Character Interaction Playground</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-bar">
+      <div>
+        <h1>Character Interaction Playground</h1>
+        <p>Build a cast, start the game, and play rounds to grow friendship.</p>
+      </div>
+      <div class="status" id="status">Add at least 2 characters.</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel creator">
+        <h2>Character Creator</h2>
+
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" placeholder="Ava" />
+        </div>
+
+        <div class="field">
+          <label for="color">Look Color</label>
+          <input id="color" type="color" value="#4f80ff" />
+        </div>
+
+        <div class="field">
+          <label for="bodyType">Body Type</label>
+          <select id="bodyType">
+            <option value="compact">Compact</option>
+            <option value="average" selected>Average</option>
+            <option value="tall">Tall</option>
+            <option value="athletic">Athletic</option>
+          </select>
+        </div>
+
+        <div class="traits">
+          <h3>Personality Traits</h3>
+          <div class="slider">
+            <label for="traitKindness">
+              Kindness
+              <span class="value" data-value-for="traitKindness">50</span>
+            </label>
+            <input
+              id="traitKindness"
+              data-trait="kindness"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+          <div class="slider">
+            <label for="traitConfidence">
+              Confidence
+              <span class="value" data-value-for="traitConfidence">50</span>
+            </label>
+            <input
+              id="traitConfidence"
+              data-trait="confidence"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+          <div class="slider">
+            <label for="traitCuriosity">
+              Curiosity
+              <span class="value" data-value-for="traitCuriosity">50</span>
+            </label>
+            <input
+              id="traitCuriosity"
+              data-trait="curiosity"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+          <div class="slider">
+            <label for="traitPatience">
+              Patience
+              <span class="value" data-value-for="traitPatience">50</span>
+            </label>
+            <input
+              id="traitPatience"
+              data-trait="patience"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+          <div class="slider">
+            <label for="traitHumor">
+              Humor
+              <span class="value" data-value-for="traitHumor">50</span>
+            </label>
+            <input
+              id="traitHumor"
+              data-trait="humor"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+          <div class="slider">
+            <label for="traitHonesty">
+              Honesty
+              <span class="value" data-value-for="traitHonesty">50</span>
+            </label>
+            <input
+              id="traitHonesty"
+              data-trait="honesty"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+            />
+          </div>
+        </div>
+
+        <div class="backstory">
+          <h3>Life Story</h3>
+          <div class="field">
+            <label for="origin">Origin</label>
+            <select id="origin">
+              <option value="coastal">Coastal</option>
+              <option value="mountain">Mountain</option>
+              <option value="city">City</option>
+              <option value="rural">Rural</option>
+              <option value="island">Island</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="career">Career</label>
+            <select id="career">
+              <option value="teacher">Teacher</option>
+              <option value="artist">Artist</option>
+              <option value="engineer">Engineer</option>
+              <option value="chef">Chef</option>
+              <option value="nurse">Nurse</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="goal">Goal</label>
+            <select id="goal">
+              <option value="belonging">Belonging</option>
+              <option value="recognition">Recognition</option>
+              <option value="stability">Stability</option>
+              <option value="freedom">Freedom</option>
+              <option value="purpose">Purpose</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" id="addCharacter">Add Character</button>
+          <button class="ghost" id="randomCharacter">Random Character</button>
+        </div>
+
+        <div class="list">
+          <h3>Cast</h3>
+          <div id="characterList" class="cards"></div>
+        </div>
+      </section>
+
+      <section class="panel scene">
+        <div class="scene-header">
+          <h2>Scene</h2>
+          <button class="primary" id="interactButton">Play Round</button>
+        </div>
+
+        <div class="game">
+          <div class="game-title">
+            <h3>Game Goal</h3>
+            <span class="pill" id="goalValue">Reach 45 friendship</span>
+          </div>
+          <p class="game-description">
+            You have <strong>5 rounds</strong> to grow friendship points.
+          </p>
+          <div class="game-stats">
+            <div>
+              <span class="label">Round</span>
+              <span id="roundValue">0 / 5</span>
+            </div>
+            <div>
+              <span class="label">Friendship</span>
+              <span id="scoreValue">0</span>
+            </div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" id="scoreBar"></div>
+          </div>
+          <div class="game-buttons">
+            <button class="primary" id="startGame">Start Game</button>
+            <button class="ghost" id="resetGame">Reset</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="sceneCanvas"></canvas>
+        </div>
+
+        <div class="summary">
+          <h3>Summary</h3>
+          <ul id="summaryList"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
